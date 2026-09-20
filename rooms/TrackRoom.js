@@ -3,6 +3,7 @@
 import { Room } from "colyseus";
 
 class TrackRoom extends Room {
+
     onCreate(options) {
         this.maxClients = 8;
 
@@ -13,16 +14,12 @@ class TrackRoom extends Room {
         this.players = 0;
     }
 
-    onJoin(client) {
+    onJoin() {
         this.players++;
     }
 
-    onLeave(client) {
+    onLeave() {
         this.players = Math.max(0, this.players - 1);
-    }
-
-    onDispose() {
-        console.log("Sala encerrada:", this.roomId);
     }
 }
 
