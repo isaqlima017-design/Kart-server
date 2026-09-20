@@ -25,30 +25,33 @@ app.get("/ping", (_req, res) => {
     res.send("pong");
 });
 
+// Criar sala
 app.post("/create", (req, res) => {
-
     const { roomName, creator, publicRoom } = req.body;
 
-    if (!roomName || roomName.length > 30) {
+    if (!roomName || roomName.trim() === "") {
         return res.status(400).json({ error: "Nome inválido." });
     }
 
     const roomId = generateRoomId();
 
-    rooms.set(roomId, {
+    const room = {
         roomId,
         roomName,
         creator,
-        publicRoom,
+        publicRoom: Boolean(publicRoom),
         players: 1,
-        maxPlayers: 8
-    });
+        maxPlayers: 8,
+        createdAt: Date.now()
+    };
 
-    res.json(rooms.get(roomId));
+    rooms.set(roomId, room);
+
+    res.json(room);
 });
 
+// Entrar por ID
 app.post("/join", (req, res) => {
-
     const { roomId } = req.body;
 
     const room = rooms.get(roomId);
@@ -66,24 +69,27 @@ app.post("/join", (req, res) => {
     res.json(room);
 });
 
+// Lista pública
 app.get("/publicrooms", (_req, res) => {
-
     res.json(
-        [...rooms.values()].filter(r => r.publicRoom)
+        [...rooms.values()].filter(room => room.publicRoom)
     );
 });
 
+// Sala aleatória
 app.get("/random", (_req, res) => {
 
-    const list = [...rooms.values()].filter(r => r.publicRoom);
+    const list = [...rooms.values()].filter(room => room.publicRoom);
 
-    if (list.length == 0) {
-        return res.status(404).json({ error: "Sem salas públicas." });
+    if (list.length === 0) {
+        return res.status(404).json({ error: "Nenhuma sala pública." });
     }
 
     const room = list[Math.floor(Math.random() * list.length)];
 
-    room.players++;
+    if (room.players < room.maxPlayers) {
+        room.players++;
+    }
 
     res.json(room);
 });
@@ -91,5 +97,5 @@ app.get("/random", (_req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log("Servidor iniciado na porta " + PORT);
+    console.log(`Servidor iniciado na porta ${PORT}`);
 });
